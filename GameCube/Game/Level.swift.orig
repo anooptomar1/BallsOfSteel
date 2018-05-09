@@ -1,0 +1,137 @@
+//
+//  Level.swift
+//  GameCube
+//
+//  Created by Michał.Krupa on 08.03.2018.
+//  Copyright © 2018 Michał.Krupa. All rights reserved.
+//
+
+import UIKit
+import SceneKit
+import SpriteKit
+
+
+
+/*
+    TODO:
+    Obecnie klasa Level wymaga przemianowania nie tyle na level co na zarządzanie mechaniką świata
+    Sama mechanika (fizyka jak kto woli) będzie uwzględniona równierz w innej klasie
+    Do TEJ klasy będzie trzeba wprowadzać pakiet wsadowy ze 'scenariuszem' oraz 'modelem fizyki' i innymi pierdolami
+ */
+
+
+
+class Level: NSObject, GameProtocol {
+
+    // TODO: Przeniesienia do scenariusza
+    var state: GameStateType    = .start
+    var mainCameraName          = "camera"
+    var sceneName               = "Media.scnassets/Board.scn"
+    
+    
+    var scene: SCNScene
+    var hud: ScreenPad
+    var physics:WorldPhysics
+
+    var scnCamera: SCNNode
+    var player: Player
+    
+    var lookAtNode: SCNNode
+    
+    
+    override init() {
+        
+        state                   = .play
+        hud                     = ScreenPad(size: (UIApplication.shared.windows.first?.frame.size)!)
+        scene                   = SCNScene(named: sceneName)!
+        physics                 = WorldPhysics(maxFallSpeed: 1, gForce: 0.2)
+        scnCamera               = scene.rootNode.childNode(withName: mainCameraName, recursively: true)!
+        player                  = Player(scnNode: scene.rootNode.childNode(withName: "Player reference", recursively: true)!, position: SCNVector3Make(0, 25, 0))
+        lookAtNode              = player.playerNode.childNode(withName: player.pointOfInterest, recursively: true)!
+        scnCamera.constraints   = [SCNLookAtConstraint(target: lookAtNode)]
+        
+        player.jumpForce        = abs(physics.maxGSpeed) * 1.5
+        
+<<<<<<< HEAD
+=======
+        player.jumpForce        = abs(physics.maxGSpeed) * 1.5
+>>>>>>> Czyszczenie
+        super.init()
+  
+        setupObjectsPositions()
+        setupColisonMasksAndPhysic()
+    }
+
+
+    /* TODO: Kastomowy init wraz z levelem 'wsadowym'
+        init(level:GameProtocol) { } */
+    
+   
+    func updateState(atTime time:TimeInterval) {
+        if state == .play {
+            updateObjectsAfectedByGravity()
+            updateMovement()
+            updateCameraPositions()
+            player.resetContactPoints()
+        }
+    }
+    
+    func commitAllAnimations() { 
+        player.commitMovement()
+    }
+ 
+    func updateObjectsAfectedByGravity() { 
+        player.apply(physics: physics)
+    }
+    
+<<<<<<< HEAD
+    private func updateMovement() {
+=======
+    private func updateMovement() { 
+>>>>>>> Czyszczenie
+        player.receive(inclination: hud.padPercInclination)
+    }
+    
+    private func updateHUDInformations() {
+       
+    }
+    
+    private func updateCameraPositions() {
+        scnCamera.worldPosition = SCNVector3Make(lookAtNode.worldPosition.x, lookAtNode.worldPosition.y, lookAtNode.worldPosition.z+15)
+    }
+    
+    private func setupObjectsPositions() {
+        lookAtNode.worldPosition = player.playerNode.worldPosition + player.cameraLookAt
+    }
+    
+    private func setupColisonMasksAndPhysic() {
+        scene.physicsWorld.contactDelegate = self
+    }
+}
+
+extension Level: SCNPhysicsContactDelegate {
+    
+    /*********************************************************************************************
+     Bardzo ważna uwaga!
+     physicWordl didBeign i didEnd mogą wywolywac sie kilka razy pomiomo ustanowionego kontaktu!!!
+     Nalezy o tym pamiętac i sprawdzać stan w didUpdate
+    **********************************************************************************************/
+    
+    func physicsWorld(_ world: SCNPhysicsWorld, didUpdate contact: SCNPhysicsContact) { 
+        guard state == .play else { return }
+        player.calculate(contact: contact)
+    }
+    
+    func physicsWorld(_ world: SCNPhysicsWorld, didBegin contact: SCNPhysicsContact) {
+        guard state == .play else { return }
+        player.calculate(contact: contact)
+    }
+    
+    
+    /** Ta funkcja delegata jeszcze nie ma zastosowania byćmoże takowe pojawi sie w przyszlosci do innych obiektow */
+    func physicsWorld(_ world: SCNPhysicsWorld, didEnd contact: SCNPhysicsContact) {
+        guard state == .play else { return }
+        player.calculateEndPlayer(bitmaskFor: contact)
+    }
+}
+

@@ -1,0 +1,237 @@
+//
+//  swift
+//  GameCube
+//
+//  Created by Michał.Krupa on 09.03.2018.
+//  Copyright © 2018 Michał.Krupa. All rights reserved.
+//
+
+import UIKit
+import SceneKit
+
+class Player: NSObject {
+
+ 
+    let pointOfInterest     = "lookAtNode"
+    let nameReference       = "player"
+    let collisionBoxes      = ["lCollisionBox","rCollisionBox","tCollisionBox","bCollisionBox"]
+    var cameraLookAt        = SCNVector3Make(10, 9, 15)
+    var currPosition        = SCNVector3Make(0, 0, 0)
+    var acceleration        = SCNVector3Make(0, 0, 0)
+    var actions             = Dictionary<String,SCNAction>()
+    var actionsArr          = Array<SCNAction>()
+    var jumpForce:Float     = 0.5
+    var runSpeed:Float      = 0.5
+    let minDiff:Float       = 0.11
+    
+    /* Punkty kolizyjne, jeżeli nie nil to ruch nie moze odbywac sie w danym kierunku */
+    var lContactPoint:SCNVector3?
+    var rContactPoint:SCNVector3?
+    var tContactPoint:SCNVector3?
+    var bContactPoint:SCNVector3?
+    var standPoint:SCNVector3?
+    
+    /* Rozmiar bohatera, konkretnie sameg playerNoda */
+    var height:Float
+    var width:Float
+    var length:Float
+    
+    /* Nody na scene*/
+    var playerNode:SCNNode
+    var playerPosition:SCNVector3
+    
+     
+    init(scnNode:SCNNode, position:SCNVector3) {
+        playerNode      = scnNode
+        playerPosition  = position
+<<<<<<< HEAD
+  
+=======
+
+        
+>>>>>>> Czyszczenie
+        if let b = playerNode.childNode(withName: "player", recursively: true)?.boundingBox {
+            width  = b.max.x - b.min.x
+            height = b.max.y - b.min.y
+            length = b.max.z - b.min.z
+        } else {
+            width  = 0.1
+            height = 0.1
+            length = 0.1
+        }
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    
+    //MARK: PUBLICZNE FUNKCJE
+    
+    public func updatePosition(){
+        
+    }
+    
+    public func updateCameraLookAtPosition() {
+        if acceleration.x < 0 && cameraLookAt.x > 0 || acceleration.x > 0 && cameraLookAt.x < 0{
+            cameraLookAt.x = -1 * cameraLookAt.x
+            playerNode.childNode(withName: pointOfInterest, recursively: false)?.runAction(SCNAction.move(to: cameraLookAt, duration: 0.7))
+        }
+    }
+    
+    public func commitMovement() {
+        if acceleration != SCNVector3Zero {
+            playerNode.worldPosition = playerNode.worldPosition + acceleration
+        }
+    }
+    
+    public func receive(inclination:CGVector) {
+        
+        //guard inclination.dx > 0 || inclination.dy > 0  else { return }
+        
+        if abs(inclination.dx) > 0.23 {
+            if abs(inclination.dx) > 0.7 {
+                acceleration.x = 0.7 * runSpeed * (inclination.dx > 0 ? 1 : -1)
+            } else {
+                acceleration.x = Float(inclination.dx) * runSpeed
+            }
+        } else if inclination.dx == 0 {
+            acceleration.x = 0
+        }
+        
+        if abs(inclination.dy) > 0.5 && bContactPoint != nil && standPoint != nil {
+            acceleration.y = jumpForce
+        } else if abs(inclination.dy) < 0 {
+            
+        }
+        
+        calculatePosition()
+    }
+    
+    public func apply(physics:WorldPhysics) {
+        if bContactPoint == nil && acceleration.y > physics.maxGSpeed {
+            acceleration.y = acceleration.y + physics.gForce
+        }
+    }
+    
+    
+    /**
+     Funckja do wynajdywania punktów maksymalnych dla danego użytkownika
+     TODO: Opcjonalnie dodać wybieranie jednego (najbliższego) z kilku punktów dla danego bumpera tj
+     Jeżeli player skacze na dwa obstacle musi wybrac na ktorym sie zatrzyma. Obecnie tylko w formie pojedynczego
+     */
+    public func calculate(contact: SCNPhysicsContact) {
+        
+        let cBitmask = (contact.nodeA.physicsBody?.categoryBitMask)! | (contact.nodeB.physicsBody?.categoryBitMask)!
+        
+        // Player collision boxes vs. Obstacle
+        if cBitmask == ObjectType.ObstacleBox.rawValue | ObjectType.LCollisonBox.rawValue ||
+           cBitmask == ObjectType.ObstacleBox.rawValue | ObjectType.RCollisonBox.rawValue ||
+           cBitmask == ObjectType.ObstacleBox.rawValue | ObjectType.TCollisonBox.rawValue ||
+           cBitmask == ObjectType.ObstacleBox.rawValue | ObjectType.BCollisonBox.rawValue
+        {
+            let playerBumper = (collisionBoxes.contains(contact.nodeA.name!) ? contact.nodeA : contact.nodeB )
+            let obstacle     = (!collisionBoxes.contains(contact.nodeA.name!) ? contact.nodeA : contact.nodeB )
+            calculateContactPoint(forBumperBox: playerBumper, andObstacle: obstacle)
+        }
+    }
+    
+    public func calculateEndPlayer(bitmaskFor contact: SCNPhysicsContact) {
+        
+        let cBitmask = (contact.nodeA.physicsBody?.categoryBitMask)! | (contact.nodeB.physicsBody?.categoryBitMask)!
+        
+        if cBitmask == ObjectType.ObstacleBox.rawValue | ObjectType.LCollisonBox.rawValue ||
+           cBitmask == ObjectType.ObstacleBox.rawValue | ObjectType.RCollisonBox.rawValue ||
+           cBitmask == ObjectType.ObstacleBox.rawValue | ObjectType.TCollisonBox.rawValue  ||
+           cBitmask == ObjectType.ObstacleBox.rawValue | ObjectType.BCollisonBox.rawValue
+        {
+            let playerBumper = (collisionBoxes.contains(contact.nodeA.name!) ? contact.nodeA : contact.nodeB )
+            let obstacle     = (!collisionBoxes.contains(contact.nodeA.name!) ? contact.nodeA : contact.nodeB )
+            calculateFinishContactPoint(forBumperBox: playerBumper, andObstacle: obstacle)
+        }
+    }
+
+    public func resetContactPoints() {
+        lContactPoint = nil
+        rContactPoint = nil
+        tContactPoint = nil
+        bContactPoint = nil
+    }
+    
+    
+    
+<<<<<<< HEAD
+    
+    //MARK: PRYWATNE FUNKJCE
+  
+    private func calculatePosition() {
+        
+        if bContactPoint != nil && acceleration.y < 0 {
+            if playerNode.worldPosition.y > (bContactPoint?.y)! && playerNode.worldPosition.y - minDiff + acceleration.y < (bContactPoint?.y)! {
+                acceleration.y = (bContactPoint?.y)! - playerNode.worldPosition.y + minDiff
+            } else if playerNode.worldPosition.y - minDiff <= (bContactPoint?.y)! && acceleration.y < 0 {
+                playerNode.position.y   = (bContactPoint?.y)! + minDiff
+                acceleration.y          = 0
+                standPoint              = playerNode.position
+=======
+    private func calculateMovement() {
+        if contactPointBottom != nil && acceleration.y < 0 {
+            let bottomPos = playerNode.worldPosition.y - height/2.0
+            if bottomPos > (contactPointBottom?.y)! && bottomPos - minDiff + acceleration.y < (contactPointBottom?.y)! {
+                acceleration.y = (contactPointBottom?.y)! - bottomPos + minDiff
+            } else if bottomPos - minDiff <= (contactPointBottom?.y)! && acceleration.y < 0 {
+                acceleration.y = 0
+>>>>>>> Czyszczenie
+            }
+        }
+        
+        if lContactPoint != nil && acceleration.x < 0 {
+            let leftPos = playerNode.worldPosition.x - width/2.0
+            if leftPos > (lContactPoint?.x)! && leftPos - minDiff + acceleration.x < (lContactPoint?.x)! {
+                acceleration.x = (lContactPoint?.x)! - leftPos + minDiff
+            } else if leftPos - minDiff <= (lContactPoint?.x)! && acceleration.x < 0 {
+                acceleration.x = 0
+            }
+        }
+        
+        if rContactPoint != nil && acceleration.x > 0 {
+            let rightPos = playerNode.worldPosition.x + width/2.0
+            if rightPos < (rContactPoint?.x)! && rightPos + minDiff + acceleration.x > (rContactPoint?.x)! {
+                acceleration.x = 0
+            } else if rightPos + minDiff >= (rContactPoint?.x)! && acceleration.x > 0 {
+                
+            }
+        }
+        
+        if tContactPoint != nil && acceleration.y >= 0 {
+            if standPoint != nil { standPoint = nil }
+        }
+    }
+    
+    private func calculateContactPoint(forBumperBox bumperBox:SCNNode, andObstacle obstBox:SCNNode) {
+        if bumperBox.name == collisionBoxes[0] {  // Left
+            lContactPoint   = SCNVector3Make(obstBox.worldPosition.x + 5, 0, 0) // <-- 5 tymczasowo
+        } else if bumperBox.name == collisionBoxes[1] { // Right
+            rContactPoint   = SCNVector3Make(obstBox.worldPosition.x - 5, 0, 0) // <-- 5 tymczasowo
+        } else if bumperBox.name == collisionBoxes[2] { // Top
+            tContactPoint   = SCNVector3Make(0, obstBox.worldPosition.y, 0) // <-- 5 tymczasowo
+        } else if bumperBox.name == collisionBoxes[3] { // Bottom
+            bContactPoint   = SCNVector3Make(0, obstBox.worldPosition.y + 5, 0) // <-- 5 tymczasowo
+            standPoint      = playerNode.position
+        }
+    }
+    
+    private func calculateFinishContactPoint(forBumperBox bumperBox:SCNNode, andObstacle obstBox:SCNNode) {
+        if bumperBox.name == collisionBoxes[0] {
+            lContactPoint   = nil
+        } else if bumperBox.name == collisionBoxes[1] {
+            rContactPoint   = nil
+        } else if bumperBox.name == collisionBoxes[2] {
+            tContactPoint   = nil
+        } else if bumperBox.name == collisionBoxes[3] {
+            bContactPoint   = nil
+            standPoint      = nil
+        }
+    }
+     
+}

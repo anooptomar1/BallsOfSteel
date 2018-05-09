@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="pwW-Y6-mkg">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Game View Controller-->
+        <scene sceneID="3YO-oB-FQa">
+            <objects>
+                <viewController id="pwW-Y6-mkg" customClass="GameViewController" customModule="GameCube" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="bbB-V5-I4b">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <gestureRecognizers/>
+                        <viewLayoutGuide key="safeArea" id="KHa-N2-7Oo"/>
+                    </view>
+                    <nil key="simulatedTopBarMetrics"/>
+                    <nil key="simulatedBottomBarMetrics"/>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="lU2-Ud-COU" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="784.79999999999995" y="-613.04347826086962"/>
+        </scene>
+        <!--Game View Controller-->
+        <scene sceneID="R3V-bm-vHa">
+            <objects>
+                <viewController id="Zhe-Ci-iKA" customClass="ARGameViewController" customModule="GameCube" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="7aX-6O-pIB">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <arscnView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Pgi-dy-vLA">
+                                <rect key="frame" x="0.0" y="20" width="375" height="647"/>
+                            </arscnView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="Pgi-dy-vLA" firstAttribute="leading" secondItem="SL3-eC-Slo" secondAttribute="leading" id="0OL-s3-fhU"/>
+                            <constraint firstItem="SL3-eC-Slo" firstAttribute="trailing" secondItem="Pgi-dy-vLA" secondAttribute="trailing" id="0bt-fL-cjb"/>
+                            <constraint firstItem="Pgi-dy-vLA" firstAttribute="top" secondItem="SL3-eC-Slo" secondAttribute="top" id="aSE-ZE-MpH"/>
+                            <constraint firstItem="SL3-eC-Slo" firstAttribute="bottom" secondItem="Pgi-dy-vLA" secondAttribute="bottom" id="dLC-JI-AWu"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="SL3-eC-Slo"/>
+                    </view>
+                    <connections>
+                        <outlet property="scnView" destination="Pgi-dy-vLA" id="LNx-ry-M67"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="9Uu-fL-BNh" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="797" y="95"/>
+        </scene>
+    </scenes>
+</document>
