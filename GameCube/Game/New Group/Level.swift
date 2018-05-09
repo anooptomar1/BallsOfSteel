@@ -33,10 +33,11 @@ class Level: NSObject, GameProtocol {
         
         super.init()
         
-        sceneCamera.constraints         = [SCNLookAtConstraint(target: player.pointOfInterest)]
+//        sceneCamera.constraints         = [SCNLookAtConstraint(target: player.pointOfInterest)]
         (hud as! ScreenPad).padDelegate = self
         
         calculateShipBounds()
+        
     }
 
     //TODO: Kastomowy init wraz z levelem 'wsadowym'
@@ -54,15 +55,15 @@ class Level: NSObject, GameProtocol {
     private func calculateShipBounds() {
         
         guard let viewSize = UIApplication.shared.windows.first?.frame.size else { return }
-        guard let yDeg = sceneCamera.camera?.fieldOfView else { return }
-        let xDeg = viewSize.width/viewSize.height*yDeg
-        let diff = CGFloat(abs(sceneCamera.worldPosition.x - player.currPosition.x))
         
-        // Tan nie przyjmuje stopni!!!1
-        print("tan45 \(tan(45.0))")
+        let yDeg = Double((sceneCamera.camera?.fieldOfView)!)
+        let xDeg = Double(viewSize.width/viewSize.height)*yDeg
+        let diff = Double(abs(sceneCamera.worldPosition.x - player.currPosition.x))
         
-        let ySize = tan(yDeg * diff) * 2
-        let xSize = tan(xDeg * diff) * 2
+        
+        
+        let ySize = tan(yDeg * Double.pi / 180.0) * 2 * diff
+        let xSize = tan(xDeg * Double.pi / 180.0) * 2 * diff
         
         
         
@@ -88,21 +89,21 @@ extension Level: SCNPhysicsContactDelegate {
         guard state == .play else {
             return
         }
-//        player.calculateContinuePlayer(bitmaskFor: contact)
+        //player.calculateContinuePlayer(bitmaskFor: contact)
     }
     
     func physicsWorld(_ world: SCNPhysicsWorld, didEnd contact: SCNPhysicsContact) {
         guard state == .play else {
             return
         }
-//        player.calculateEndPlayer(bitmaskFor: contact)
+        //player.calculateEndPlayer(bitmaskFor: contact)
     }
     
     func physicsWorld(_ world: SCNPhysicsWorld, didBegin contact: SCNPhysicsContact) {
         guard state == .play else {
             return
         }
-//        player.calculateStartPlayer(bitmaskFor: contact)
+        //player.calculateStartPlayer(bitmaskFor: contact)
     }
 }
 
